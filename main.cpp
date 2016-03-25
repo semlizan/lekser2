@@ -16,14 +16,15 @@ char get_char()
 }
 
 int main(){
+
 	ifs >> noskipws;
 	string type;
+	string lex;
 	char bukva = get_char();
 	while (!ifs.eof()){
 		if (bukva == 0){
 			break;
 		}
-		string lex;
 		if (bukva == '\''){//считывание string
 			lex += bukva;
 			bukva = get_char();
@@ -68,10 +69,16 @@ int main(){
 				}
 			}
 		}
-		else bukva = get_char();
-		cout << lex << endl << 'F' << endl;
-
-//		cout << lex << endl;
+		else if (bukva == '$'){//считывание шестнадцатиричного 
+			lex += bukva;
+			bukva = get_char();
+			while (isdigit(bukva) || (bukva >= 'A' && bukva <= 'F') || (bukva >= 'a' && bukva <= 'f')){
+				lex += bukva;
+				bukva = get_char();
+			}
+		}
+		else if (bukva == '\n') bukva = get_char();
+		cout << lex << endl;
 	}
 	system("pause");
 }
