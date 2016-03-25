@@ -16,7 +16,6 @@ char get_char()
 }
 
 int main(){
-
 	ifs >> noskipws;
 	string type;
 	string lex;
@@ -69,6 +68,17 @@ int main(){
 				}
 			}
 		}
+		else if (bukva == '{'){
+			lex += bukva;
+			bukva = get_char();
+				type = "mstr comment";
+				while (bukva != '}'){
+					lex += bukva;
+					bukva = get_char();
+				}
+				lex += bukva;
+				bukva = get_char();
+		}
 		else if (bukva == '$'){//считывание шестнадцатиричного 
 			lex += bukva;
 			bukva = get_char();
@@ -77,8 +87,11 @@ int main(){
 				bukva = get_char();
 			}
 		}
-		else if (bukva == '\n') bukva = get_char();
-		cout << lex << endl;
+		else if (bukva == '\n' || bukva == ' ') bukva = get_char();
+		if (lex != ""){//для того чтоб не выводилась пустая лексема
+			cout << lex << endl;
+		}
+		lex = "";
 	}
 	system("pause");
 }
