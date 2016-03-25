@@ -79,6 +79,28 @@ int main(){
 				lex += bukva;
 				bukva = get_char();
 		}
+		else if (bukva == '('){
+			lex += bukva;
+			bukva = get_char();
+			if (bukva == '*'){
+				lex += bukva;
+				bukva = get_char();
+				type = "mstr comment";
+				while (1){
+					lex += bukva;
+					bukva = get_char();
+					if (bukva == '*'){
+						lex += bukva;
+						bukva = get_char();
+						if (bukva == ')'){
+							lex += bukva;
+							bukva = get_char();
+							break;
+						}
+					}
+				}
+			}
+		}
 		else if (bukva == '$'){//считывание шестнадцатиричного 
 			lex += bukva;
 			bukva = get_char();
