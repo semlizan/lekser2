@@ -5,61 +5,60 @@
 using namespace std;
 
 ifstream ifs("input.txt");
+string lex;
+	char bukva;
 char get_char()
 {
-	char bukva;
 	ifs >> bukva;
 	if (ifs.eof()) {
 		return 0;
 	}
 	return bukva;
 }
+void next_plus()
+{
+	lex += bukva;
+	bukva = get_char();
+}
 
 int main(){
 	ifs >> noskipws;
 	string type;
-	string lex;
 	char bukva = get_char();
 	while (!ifs.eof()){
 		if (bukva == 0){
 			break;
 		}
 		if (bukva == '\''){//считывание string
-			lex += bukva;
-			bukva = get_char();
+			next_plus();
 			while (!(bukva == '\'' || bukva == '\n')){
-				lex += bukva;
-				bukva = get_char();
+				next_plus();
 			}
 			lex += bukva;
 		}
 
-		else if (isdigit(bukva)){
-			while (isdigit(bukva)) {
-				lex += bukva;
-				bukva = get_char();
-			}
-			if (bukva == '.')//считывание вещ числа
-			{
-				type = "real";
-				lex += bukva;
-				bukva = get_char();
-				while (isdigit(bukva)) {
-					lex += bukva;
-					bukva = get_char();
+		else if (isdigit(bukva)){//експонента
+			while (isdigit(bukva) || bukva == 'e' || bukva == 'E' || bukva == '.') {
+				if (bukva == '.')//считывание вещ числа
+				{
+					type = "real";
 				}
+				if (bukva == 'e' || bukva == 'E'){
+					next_plus();
+					if (bukva == '+' || bukva == '-'){
+						next_plus();
+					}
+				}
+				next_plus();
 			}
-			
 		}
 		else if (isalpha(bukva) || '_' == bukva){//считываю лексемы
 			while (isdigit(bukva) || isalpha(bukva) || '_' == bukva){
-				lex += bukva;
-				bukva = get_char();
+				next_plus();
 			}
 		}
 		else  if (bukva == '/'){//строчный комент
-			lex += bukva;
-			bukva = get_char();
+			next_plus();
 			if (bukva == '/'){
 				type = "str comment";
 				lex += bukva;
@@ -69,32 +68,24 @@ int main(){
 			}
 		}
 		else if (bukva == '{'){
-			lex += bukva;
-			bukva = get_char();
-				type = "mstr comment";
-				while (bukva != '}'){
-					lex += bukva;
-					bukva = get_char();
-				}
-				lex += bukva;
-				bukva = get_char();
+			next_plus();
+			type = "mstr comment";
+			while (bukva != '}'){
+				next_plus();
+			}
+			next_plus();
 		}
 		else if (bukva == '('){
-			lex += bukva;
-			bukva = get_char();
+			next_plus();
 			if (bukva == '*'){
-				lex += bukva;
-				bukva = get_char();
+				next_plus();
 				type = "mstr comment";
 				while (1){
-					lex += bukva;
-					bukva = get_char();
+					next_plus();
 					if (bukva == '*'){
-						lex += bukva;
-						bukva = get_char();
+						next_plus();
 						if (bukva == ')'){
-							lex += bukva;
-							bukva = get_char();
+							next_plus();
 							break;
 						}
 					}
@@ -102,11 +93,9 @@ int main(){
 			}
 		}
 		else if (bukva == '$'){//считывание шестнадцатиричного 
-			lex += bukva;
-			bukva = get_char();
+			next_plus();
 			while (isdigit(bukva) || (bukva >= 'A' && bukva <= 'F') || (bukva >= 'a' && bukva <= 'f')){
-				lex += bukva;
-				bukva = get_char();
+				next_plus();
 			}
 		}
 		else if (bukva == '\n' || bukva == ' ') bukva = get_char();
