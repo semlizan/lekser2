@@ -6,7 +6,7 @@ using namespace std;
 
 ifstream ifs("input.txt");
 string lex;
-	char bukva;
+char bukva;
 char get_char()
 {
 	ifs >> bukva;
@@ -17,14 +17,16 @@ char get_char()
 }
 void next_plus()
 {
-	lex += bukva;
-	bukva = get_char();
+	if (bukva != '0'){
+		lex += bukva;
+		get_char();
+	};
 }
 
 int main(){
 	ifs >> noskipws;
 	string type;
-	char bukva = get_char();
+	get_char();
 	while (!ifs.eof()){
 		if (bukva == 0){
 			break;
@@ -33,18 +35,28 @@ int main(){
 			next_plus();
 			while (!(bukva == '\'' || bukva == '\n')){
 				next_plus();
+				if (!ifs.eof()){
+					break;
+				}
 			}
 			lex += bukva;
 		}
 
 		else if (isdigit(bukva)){//експонента
+				bool r, k;
+				r, k = false;
 			while (isdigit(bukva) || bukva == 'e' || bukva == 'E' || bukva == '.') {
 				if (bukva == '.')//считывание вещ числа
 				{
 					type = "real";
+					k = true;
 				}
 				if (bukva == 'e' || bukva == 'E'){
 					next_plus();
+					r = true;
+					if (isdigit(bukva)){
+						break;
+					}
 					if (bukva == '+' || bukva == '-'){
 						next_plus();
 					}
@@ -61,9 +73,8 @@ int main(){
 			next_plus();
 			if (bukva == '/'){
 				type = "str comment";
-				lex += bukva;
 				while (bukva != '\n' && !ifs.eof()){
-					bukva = get_char();
+					get_char();
 				}
 			}
 		}
@@ -72,6 +83,9 @@ int main(){
 			type = "mstr comment";
 			while (bukva != '}'){
 				next_plus();
+				if (!ifs.eof()){
+					break;
+				}
 			}
 			next_plus();
 		}
@@ -98,7 +112,7 @@ int main(){
 				next_plus();
 			}
 		}
-		else if (bukva == '\n' || bukva == ' ') bukva = get_char();
+		else if (bukva == '\n' || bukva == ' ')  get_char();
 		if (lex != ""){//для того чтоб не выводилась пустая лексема
 			cout << lex << endl;
 		}
