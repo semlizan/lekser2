@@ -123,6 +123,19 @@ int main(){
 				next_plus();
 			}
 		}
+		else if (bukva == '#'){//символьная литера
+			next_plus();
+			if (isdigit(bukva)){
+				while (isdigit(bukva)){
+					next_plus();
+				}
+		}
+			else if (bukva == '$'){//считывание шестнадцатиричного в символьной литере
+				next_plus();
+				while (isdigit(bukva) || (bukva >= 'A' && bukva <= 'F') || (bukva >= 'a' && bukva <= 'f')){
+					next_plus();
+				}
+			}
 		else get_char();
 		if (lex != ""){//для того чтоб не выводилась пустая лексема
 			cout << lex << endl;
