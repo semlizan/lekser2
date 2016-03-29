@@ -67,6 +67,9 @@ int main(){
 		else if (isalpha(bukva) || '_' == bukva){//считываю лексемы
 			while (isdigit(bukva) || isalpha(bukva) || '_' == bukva){
 				next_plus();
+				if (ifs.eof()) {
+					break;
+				}
 			}
 		}
 		else  if (bukva == '/'){//строчный комент
@@ -88,6 +91,7 @@ int main(){
 				}
 			}
 			next_plus();
+
 		}
 		else if (bukva == '('){
 			next_plus();
@@ -95,6 +99,13 @@ int main(){
 				next_plus();
 				type = "mstr comment";
 				while (1){
+					if (bukva == '*'){
+						next_plus();
+						if (bukva == ')'){
+							next_plus();
+							break;
+						}
+					}
 					next_plus();
 					if (bukva == '*'){
 						next_plus();
@@ -112,7 +123,7 @@ int main(){
 				next_plus();
 			}
 		}
-		else if (bukva == '\n' || bukva == ' ')  get_char();
+		else get_char();
 		if (lex != ""){//для того чтоб не выводилась пустая лексема
 			cout << lex << endl;
 		}
