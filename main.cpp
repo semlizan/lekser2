@@ -7,10 +7,34 @@ using namespace std;
 ifstream ifs("input.txt");
 string lex;
 char bukva;
+char ops[] = { '+', '*', ' :', '-', '>', '^', '<', '@', '.', '=' };
+char ops_second[] = { '+', '-' , '*', '/' , '<', '>', ':' };
 string type;
+bool prover_masiv(char s, char *masiv, int len){
+	for (int i = 0; i < len; i++){
+		if (s == masiv[i]) return true;
+	}
+	return false;
+}
+void error(string msg)
+{
+	cout << "error: " << msg << "\n";
+	system("pause");
+	exit(1);
+}
+int stl, st;
+int stl2, st2;
 char get_char()
 {
 	ifs >> bukva;
+	if (bukva == '\n'){
+		stl++;
+		st = 0;
+	}
+	if (bukva == '\t'){
+		st = st / 4 * 4 + 4;
+	}
+	else st++;
 	if (ifs.eof()) {
 		return 0;
 	}
@@ -21,7 +45,7 @@ void next_plus()
 	if (bukva != '0'){
 		lex += bukva;
 		get_char();
-	};
+	}
 }
 string get_token(){
 	lex = "";
@@ -30,49 +54,96 @@ string get_token(){
 	}
 	if (bukva == '\''){//считывание string
 		next_plus();
-		while (!(bukva == '\'' || bukva == '\n')){
+		type = "string";
+		while (!bukva == '\''){
 			next_plus();
 			if (!ifs.eof()){
 				break;
+			}
+			if (bukva == '\n'){
+				error("\\n in str");
 			}
 		}
 		lex += bukva;
 	}
 
+	else if (prover_masiv(bukva, ops, sizeof(ops) / sizeof(ops[0]))){
+		type = "op";
+		if (prover_masiv(bukva, ops_second, sizeof(ops_second) / sizeof(ops_second[0]))){
+			if (bukva == '<'){
+				next_plus();
+				if (bukva == '>' || bukva == '='){
+					next_plus();
+				}
+			}
+			else {
+				next_plus();
+				if (bukva = '='){
+					next_plus();
+				}
+			}
+		}
+		else if (bukva == ':'){
+			next_plus(); 
+			type = "sep"; 
+		}
+		else if (bukva == '.') {
+			next_plus();
+			if (bukva == '.') {
+				next_plus(); 
+				type = "sep";
+			}
+	}
 	else if (isdigit(bukva)){//експонента
-		bool r, k;
-		r, k = false;
+		bool r = false, k = false;
+		type = "int";
 		while (isdigit(bukva) || bukva == 'e' || bukva == 'E' || bukva == '.') {
 			if (bukva == '.')//считывание вещ числа
 			{
+				if (r == true){
+					error("dot after exp");
+				}
+				if (true == k){
+					error("second dot in real");
+				}
 				type = "real";
 				k = true;
+				next_plus();
 			}
-			if (bukva == 'e' || bukva == 'E'){
+			else if (bukva == 'e' || bukva == 'E')
+			{
+				if (true == r){
+					error("second exp in real");
+				}
 				next_plus();
 				r = true;
-				if (isdigit(bukva)){
-					break;
-				}
 				if (bukva == '+' || bukva == '-'){
 					next_plus();
 				}
 			}
-			next_plus();
+			else {
+				next_plus();
+			}
 		}
 	}
 	else if (isalpha(bukva) || '_' == bukva){//считываю лексемы
 		while (isdigit(bukva) || isalpha(bukva) || '_' == bukva){
 			next_plus();
+			type = "ident";
 			if (ifs.eof()) {
 				break;
 			}
 		}
 	}
-	else  if (bukva == '/'){//строчный комент
+	else if (bukva == '/'){//строчный комент
 		next_plus();
-		if (bukva == '/'){
+			type = "op";
+		if (bukva == '='){
+			next_plus();
+		}
+		else if (bukva == '/'){
 			type = "str comment";
+		}
 			while (bukva != '\n' && !ifs.eof()){
 				get_char();
 			}
@@ -84,7 +155,7 @@ string get_token(){
 		while (bukva != '}'){
 			next_plus();
 			if (!ifs.eof()){
-				break;
+				error("eof in comment");
 			}
 		}
 		next_plus();
@@ -104,24 +175,22 @@ string get_token(){
 					}
 				}
 				next_plus();
-				if (bukva == '*'){
-					next_plus();
-					if (bukva == ')'){
-						next_plus();
-						break;
-					}
+				if (!ifs.eof()){
+					error("eof in comment");
 				}
-			}
+	 		}
 		}
 	}
 	else if (bukva == '$'){//считывание шестнадцатиричного 
 		next_plus();
+		type = "hex";
 		while (isdigit(bukva) || (bukva >= 'A' && bukva <= 'F') || (bukva >= 'a' && bukva <= 'f')){
 			next_plus();
 		}
 	}
 	else if (bukva == '#'){//символьная литера
 		next_plus();
+		type = "char";
 		if (isdigit(bukva)){
 			while (isdigit(bukva)){
 				next_plus();
@@ -129,6 +198,7 @@ string get_token(){
 		}
 		else if (bukva == '$'){//считывание шестнадцатиричного в символьной литере
 			next_plus();
+			type = "char";
 			while (isdigit(bukva) || (bukva >= 'A' && bukva <= 'F') || (bukva >= 'a' && bukva <= 'f')){
 				next_plus();
 			}
@@ -139,11 +209,16 @@ string get_token(){
 }
 int main(){
 	ifs >> noskipws;
+	stl = 1;
+	st = 0;
+	stl2 = st2 = 1;
 	get_char();
 	while (!ifs.eof()){
 		get_token();
 		if (lex != ""){//для того чтоб не выводилась пустая лексема
-			cout << lex << endl;
+			cout << st2 << "\t" << stl2 << "\t" << lex << endl;
+			stl2 = st;
+			st2=stl;
 		}
 	}
 	system("pause");
