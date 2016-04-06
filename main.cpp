@@ -4,6 +4,14 @@
 #include <ctype.h>
 using namespace std;
 
+struct Token {
+	int col;
+	int row;
+	string lex;
+	string tip;
+};
+
+
 ifstream ifs("input.txt");
 string lex;
 char bukva;
@@ -47,7 +55,7 @@ void next_plus()
 		get_char();
 	}
 }
-string get_token(){
+TOKEN * get_token(){
 	lex = "";
 	if (bukva == 0){
 		return 0;
@@ -205,7 +213,12 @@ string get_token(){
 		}
 	}
 	else get_char();
-	return lex;
+	TOKEN *cur;
+	cur.cul = st2;
+	cur.row = stl2;
+	cur.lex = lex;
+	cur.tip = type;
+	return cur;
 }
 int main(){
 	ifs >> noskipws;
@@ -213,10 +226,12 @@ int main(){
 	st = 0;
 	stl2 = st2 = 1;
 	get_char();
-	while (!ifs.eof()){
-		get_token();
+	TOKEN *tok
+	while (!ifs.eof()){	
+	tok = get_token();
 		if (lex != ""){//для того чтоб не выводилась пустая лексема
-			cout << st2 << "\t" << stl2 << "\t" << lex << endl;
+			cout << tok.col << "\t" << tok.row << "\t" << tok.lex << tok.type << endl;
+		
 			stl2 = st;
 			st2=stl;
 		}
