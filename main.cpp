@@ -13,11 +13,13 @@ struct Token {
 
 
 ifstream ifs("input.txt");
+ofstream fout("output.txt");
 string lex;
 char bukva;
 char ops[] = { '+', '*', ' :', '-', '>', '^', '<', '@', '.', '=' };
 char ops_second[] = { '+', '-' , '*', '/' , '<', '>', ':' };
 string type;
+Token tok;
 bool prover_masiv(char s, char *masiv, int len){
 	for (int i = 0; i < len; i++){
 		if (s == masiv[i]) return true;
@@ -32,6 +34,7 @@ void error(string msg)
 }
 int stl, st;
 int stl2, st2;
+
 char get_char()
 {
 	ifs >> bukva;
@@ -54,11 +57,68 @@ void next_plus()
 		lex += bukva;
 		get_char();
 	}
+	if (ifs.eof()) bukva = '~';
 }
-TOKEN * get_token(){
-	lex = "";
+bool chislo(char c)
+{
+	return (isdigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'));
+}
+void chit_znach()
+{
+	if (type == "integer"){
+		int a;
+		a = atoi(lex.c_str());
+		fout << tok.col << "\t" << tok.row << "\t" << tok.tip << "\t" << tok.lex << "\t" << a << endl;
+	}
+	else if (type == "real"){
+		double a;
+		a = atof(lex.c_str());
+		char buf[11];
+		sprintf(buf, "%.4E", a);
+		buf[8] = buf[9]; 
+		buf[9] = buf[10];
+		buf[10] = 0;
+		fout << tok.col << "\t" << tok.row << "\t" << tok.tip << "\t" << tok.lex << "\t" << buf << endl;
+	}
+	else if (type == "hex"){
+		long int a;
+		string s;
+		s = lex.substr(1, lex.size());
+		a = strtol(s.c_str(), NULL, 16);
+	}
+	else if (type == "char"){
+		string s;
+		int a;
+		char d;
+		type = "char";
+		if (lex[1] == '$')
+		{
+			s = lex.substr(2, lex.size());
+			a = strtol(s.c_str(), NULL, 16);
+		}
+		else
+		{
+			s = lex.substr(1, lex.size());
+			a = atoi(s.c_str());
+		}
+		cout << a << endl;
+		if (a > 127){
+			error("BadCC");
+		}
+			d = (char)a;
+			fout << tok.col << "\t" << tok.row << "\t" << tok.tip << "\t" << tok.lex << "\t" << d << endl;
+	}
+	else if (type == "string"){
+		string s;
+		s = lex.substr(1, lex.size() - 2);
+		fout << tok.col << "\t" << tok.row << "\t" << tok.tip << "\t" << tok.lex << "\t" << s << endl;
+	}
+	else 	fout << tok.col << "\t" << tok.row << "\t" << tok.tip << "\t" << tok.lex << endl;
+}
+Token  get_token(){
 	if (bukva == 0){
-		return 0;
+		Token cur;
+		return cur;
 	}
 	if (bukva == '\''){//считывание string
 		next_plus();
@@ -69,7 +129,7 @@ TOKEN * get_token(){
 				break;
 			}
 			if (bukva == '\n'){
-				error("\\n in str");
+				error("BadNL");
 			}
 		}
 		lex += bukva;
@@ -86,7 +146,7 @@ TOKEN * get_token(){
 			}
 			else {
 				next_plus();
-				if (bukva = '='){
+				if (bukva == '='){
 					next_plus();
 				}
 			}
@@ -98,9 +158,10 @@ TOKEN * get_token(){
 		else if (bukva == '.') {
 			next_plus();
 			if (bukva == '.') {
-				next_plus(); 
+				next_plus();
 				type = "sep";
 			}
+		}
 	}
 	else if (isdigit(bukva)){//експонента
 		bool r = false, k = false;
@@ -109,10 +170,10 @@ TOKEN * get_token(){
 			if (bukva == '.')//считывание вещ числа
 			{
 				if (r == true){
-					error("dot after exp");
+					error("NoFract");
 				}
 				if (true == k){
-					error("second dot in real");
+					error("NoFract");
 				}
 				type = "real";
 				k = true;
@@ -121,7 +182,7 @@ TOKEN * get_token(){
 			else if (bukva == 'e' || bukva == 'E')
 			{
 				if (true == r){
-					error("second exp in real");
+					error("NoFract");
 				}
 				next_plus();
 				r = true;
@@ -134,7 +195,7 @@ TOKEN * get_token(){
 			}
 		}
 	}
-	else if (isalpha(bukva) || '_' == bukva){//считываю лексемы
+	else if (isalpha(bukva) || '_' == bukva){//считывание индефекатора
 		while (isdigit(bukva) || isalpha(bukva) || '_' == bukva){
 			next_plus();
 			type = "ident";
@@ -156,14 +217,13 @@ TOKEN * get_token(){
 				get_char();
 			}
 		}
-	}
 	else if (bukva == '{'){
 		next_plus();
 		type = "mstr comment";
 		while (bukva != '}'){
 			next_plus();
 			if (!ifs.eof()){
-				error("eof in comment");
+				error("BadEOF");
 			}
 		}
 		next_plus();
@@ -184,15 +244,18 @@ TOKEN * get_token(){
 				}
 				next_plus();
 				if (!ifs.eof()){
-					error("eof in comment");
+					error("BadEOF");
 				}
 	 		}
 		}
 	}
 	else if (bukva == '$'){//считывание шестнадцатиричного 
 		next_plus();
+		if (!chislo(bukva)){
+			error("NoHex");
+		}
 		type = "hex";
-		while (isdigit(bukva) || (bukva >= 'A' && bukva <= 'F') || (bukva >= 'a' && bukva <= 'f')){
+		while (chislo(bukva)){
 			next_plus();
 		}
 	}
@@ -206,15 +269,20 @@ TOKEN * get_token(){
 		}
 		else if (bukva == '$'){//считывание шестнадцатиричного в символьной литере
 			next_plus();
-			type = "char";
-			while (isdigit(bukva) || (bukva >= 'A' && bukva <= 'F') || (bukva >= 'a' && bukva <= 'f')){
+			if (!chislo(bukva)){
+				error("NoHex");
+			}
+			while (chislo(bukva)){
 				next_plus();
 			}
 		}
+		else if (lex[0] == '#'){
+			error("NoCC");
+		}
 	}
-	else get_char();
-	TOKEN *cur;
-	cur.cul = st2;
+	else error("BadChar");
+	Token cur;
+	cur.col = st2;
 	cur.row = stl2;
 	cur.lex = lex;
 	cur.tip = type;
@@ -226,14 +294,13 @@ int main(){
 	st = 0;
 	stl2 = st2 = 1;
 	get_char();
-	TOKEN *tok
 	while (!ifs.eof()){	
 	tok = get_token();
 		if (lex != ""){//для того чтоб не выводилась пустая лексема
-			cout << tok.col << "\t" << tok.row << "\t" << tok.lex << tok.type << endl;
-		
+			chit_znach();
 			stl2 = st;
 			st2=stl;
+			lex = "";
 		}
 	}
 	system("pause");
