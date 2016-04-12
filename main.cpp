@@ -59,7 +59,7 @@ void next_plus()
 	}
 	if (ifs.eof()) bukva = '~';
 }
-bool chislo(char c)
+bool is_hex(char c)
 {
 	return (isdigit(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'));
 }
@@ -169,9 +169,6 @@ Token  get_token(){
 		while (isdigit(bukva) || bukva == 'e' || bukva == 'E' || bukva == '.') {
 			if (bukva == '.')//считывание вещ числа
 			{
-				if (r == true){
-					error("NoFract");
-				}
 				if (true == k){
 					error("NoFract");
 				}
@@ -251,11 +248,11 @@ Token  get_token(){
 	}
 	else if (bukva == '$'){//считывание шестнадцатиричного 
 		next_plus();
-		if (!chislo(bukva)){
+		if (!is_hex(bukva)){
 			error("NoHex");
 		}
 		type = "hex";
-		while (chislo(bukva)){
+		while (is_hex(bukva)){
 			next_plus();
 		}
 	}
@@ -269,10 +266,10 @@ Token  get_token(){
 		}
 		else if (bukva == '$'){//считывание шестнадцатиричного в символьной литере
 			next_plus();
-			if (!chislo(bukva)){
+			if (!is_hex(bukva)){
 				error("NoHex");
 			}
-			while (chislo(bukva)){
+			while (is_hex(bukva)){
 				next_plus();
 			}
 		}
